@@ -82,7 +82,8 @@ def extract_profile(tif, line_file, ds):
                               order=1, cval=np.nan)
     
 #    profile = np.array(profile,dtype=float)
-    profile[np.abs(profile) == 9999] = np.nan
+    if type(profile[0]) == float:
+        profile[np.abs(profile) == 9999] = np.nan
    
     return disti, profile
         

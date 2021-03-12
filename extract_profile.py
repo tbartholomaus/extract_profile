@@ -40,7 +40,8 @@ def extract_profile(tif, line_file, ds):
     #%% Create evenly spaced points
     # Read coordinates of the profile line from shapefile
     fiona_obj = fiona.open(line_file)
-    line = fiona_obj.next()
+#    line = fiona_obj.next()
+    line = iter(fiona_obj).next() # this line is proper syntax for fiona v2.  Corrected on Mar 12, 2021 by TCB
     coords = np.array( line['geometry']['coordinates'] ) # m the easting and northing coordinates of the vertices along the shapefile
     
     sqrd_deltas = np.diff(coords, axis=0)**2 # squared differences between x and y coordinates

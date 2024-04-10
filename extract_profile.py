@@ -28,6 +28,10 @@ def extract_profile(raster, line_file, ds, var='None'):
         disti: a vector (np.array) of evenly-space distances along
                     the shapefile.
         profile: values drawn from raster at the distances of disti.
+        xi: the interpolated, evenly spaced x coordinates along the line_file,
+                    at which the disti and profile values are defined.
+        yi: the interpolated, evenly spaced y coordinates along the line_file,
+                    at which the disti and profile values are defined.                    
         
     """
 
@@ -35,7 +39,6 @@ def extract_profile(raster, line_file, ds, var='None'):
     from osgeo import gdal
     import xarray as xr
 
-    # import fiona
     import geopandas as gpd
     from scipy.interpolate import interp1d
     from scipy.ndimage import map_coordinates
@@ -44,12 +47,6 @@ def extract_profile(raster, line_file, ds, var='None'):
     # Read coordinates of the profile line from geopackage or shapefile
     gpd_file = gpd.read_file(line_file)
     coords = np.array(gpd_file.geometry[0].coords[:]) # m the easting and northing coordinates of the vertices along the shapefile
-    
-    # # Read coordinates of the profile line from shapefile
-    # fiona_obj = fiona.open(line_file)
-    # line = iter(fiona_obj).next()
-    # coords = np.array( line['geometry']['coordinates'] ) # m the easting and northing coordinates of the vertices along the shapefile
-
 
     sqrd_deltas = np.diff(coords, axis=0)**2 # squared differences between x and y coordinates
     deltas = np.sum(sqrd_deltas, axis=1)**0.5 # m  straight-line path length between adjacent points in the shapefile
@@ -80,13 +77,10 @@ def extract_profile(raster, line_file, ds, var='None'):
         xres = np.unique(np.round(np.diff(rast_x), 6))[0]
         yres = np.unique(np.round(np.diff(rast_y), 6))[0]
 
-
-
     # convert the profile coordinates into pixel coordinates
     px = (xi - xmin) / xres
     py = (yi - ymax) / yres
     
-
 
     # Interpolate within raster_data at given pixel coordinates to identify values from the geotiff  
     #   Uses a 1st order spline interpolant to extract estimated values of
@@ -95,10 +89,6 @@ def extract_profile(raster, line_file, ds, var='None'):
     profile = map_coordinates(raster_data, np.vstack((py, px)),
                               order=1, cval=np.nan)
     
-#    profile = np.array(profile,dtype=float)
-
     #profile[np.abs(profile) == 9999] = np.nan
    
     return disti, profile, xi, yi
-        
-#%%
